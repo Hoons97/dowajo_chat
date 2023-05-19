@@ -1,0 +1,21 @@
+.ChatLog {
+  height: 1000px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  overflow-y: auto;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.ChatLog::-webkit-scrollbar {
+  width: 10px;
+}
+.ChatLog::-webkit-scrollbar-thumb {
+  background-color: #495057;
+  border-radius: 10px;
+}
+.ChatLog::-webkit-scrollbar-track {
+  background-color: rgb(206, 206, 206);
+  border-radius: 10px;
+}

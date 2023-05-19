@@ -1,0 +1,10 @@
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #e9ecef;
+}
+
+#root {
+  height: 100%;
+}
