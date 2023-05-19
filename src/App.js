@@ -9,7 +9,7 @@ import SettingBar from "./components/SettingBar";
 import Videos from "./components/Videos";
 
 const accessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuyepeyKue2biCIsImVtYWlsIjoid2tkdG1kZ25zcW5AbmF2ZXIuY29tIiwibmlja25hbWUiOiJob29ucyIsInR5cGUiOiJ1c2VycyIsInRva2VuIjoiYWNjZXNzIiwiaWF0IjoxNjg0NTE1MjM1LCJleHAiOjE2ODQ1MjI0MzV9.UtEePas7ou9ejHbyvZ95UWy5I85m3snz--8CcNVvxQk";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuyepeyKue2biCIsImVtYWlsIjoid2tkdG1kZ25zcW5AbmF2ZXIuY29tIiwibmlja25hbWUiOiJob29ucyIsInR5cGUiOiJ1c2VycyIsInRva2VuIjoiYWNjZXNzIiwiaWF0IjoxNjg0NTIzNzM4LCJleHAiOjE2ODQ1MzA5Mzh9.cLdGxvi27q17Cb1dg4oIPVTwGFHL6n3cY54rwqzIF30";
 const myname = "장승훈";
 const roomId = 1;
 
@@ -63,6 +63,7 @@ function App() {
   const myVideoRef = useRef();
   const remoteVideoRef = useRef();
   const peerRef = useRef();
+  const sender = useRef();
 
   const changeSettings = useCallback(
     (e) => {
@@ -131,7 +132,7 @@ function App() {
         if (!peerRef.current) {
           return;
         }
-        peerRef.current.addTrack(track, stream);
+        sender.current = peerRef.current.addTrack(track, stream);
       });
 
       // iceCandidate 이벤트
@@ -141,7 +142,7 @@ function App() {
             return;
           }
           console.log("recv candidate");
-          socket.emit("ice", e.candidate, roomId);
+          socket.emit("ice", e.candidate, roomId, "컴퓨터");
         }
       };
 
@@ -205,8 +206,9 @@ function App() {
     function onBye(userName) {
       console.log("bye 이벤트");
       addEvent(userName, "bye");
-      remoteVideoRef.current = null;
+      remoteVideoRef.current.srcObject=null;
     }
+
     function onNewMsg(user, msg) {
       console.log("new_message 이벤트");
       addMessage(user, msg);
@@ -226,6 +228,10 @@ function App() {
     };
   }, [addEvent, addMessage]);
 
+  window.addEventListener("beforeunload", (e) => {
+    peerRef.current.removeTrack(sender);
+    peerRef.current.close();
+  });
   //webRTC 세팅
   useEffect(() => {
     peerRef.current = new RTCPeerConnection({
@@ -247,34 +253,39 @@ function App() {
       if (!peerRef.current) {
         return;
       }
+      console.log("setRemote 시작");
       peerRef.current.setRemoteDescription(sdp);
     }
 
     async function onGetIce(ice) {
+      console.log("ice 받음");
       if (!peerRef.current) {
         return;
       }
-
-      await peerRef.current.addIceCandidate(ice);
+      console.log("add Ice");
+      peerRef.current.addIceCandidate(ice);
     }
     function onNewClient() {
       console.log("새친구 접속");
       createOffer();
     }
 
+    function unloadHandler(e) {
+      peerRef.current.removeTrack(sender);
+      peerRef.current.close();
+    }
+    window.addEventListener("beforeunload", unloadHandler);
     socket.on("getOffer", onGetOffer);
     socket.on("getAnswer", onGetAnswer);
     socket.on("getIce", onGetIce);
     socket.on("newClient", onNewClient);
     return () => {
+      window.removeEventListener("beforeunload", unloadHandler);
       socket.off("getOffer", onGetOffer);
       socket.off("getAnswer", onGetAnswer);
       socket.off("getIce", onGetIce);
       socket.off("newClient", onNewClient);
-
-      if (peerRef.current) {
-        peerRef.current.close();
-      }
+      peerRef.current.close();
     };
   }, []);
   return (
