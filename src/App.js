@@ -228,10 +228,7 @@ function App() {
     };
   }, [addEvent, addMessage]);
 
-  window.addEventListener("beforeunload", (e) => {
-    peerRef.current.removeTrack(sender);
-    peerRef.current.close();
-  });
+
   //webRTC 세팅
   useEffect(() => {
     peerRef.current = new RTCPeerConnection({
@@ -270,17 +267,12 @@ function App() {
       createOffer();
     }
 
-    function unloadHandler(e) {
-      peerRef.current.removeTrack(sender);
-      peerRef.current.close();
-    }
-    window.addEventListener("beforeunload", unloadHandler);
+
     socket.on("getOffer", onGetOffer);
     socket.on("getAnswer", onGetAnswer);
     socket.on("getIce", onGetIce);
     socket.on("newClient", onNewClient);
     return () => {
-      window.removeEventListener("beforeunload", unloadHandler);
       socket.off("getOffer", onGetOffer);
       socket.off("getAnswer", onGetAnswer);
       socket.off("getIce", onGetIce);
