@@ -9,7 +9,7 @@ import SettingBar from "./components/SettingBar";
 import Videos from "./components/Videos";
 
 const accessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuyepeyKue2biCIsImVtYWlsIjoid2tkdG1kZ25zcW5AbmF2ZXIuY29tIiwibmlja25hbWUiOiJob29ucyIsInR5cGUiOiJ1c2VycyIsInRva2VuIjoiYWNjZXNzIiwiaWF0IjoxNjg0NTIzNzM4LCJleHAiOjE2ODQ1MzA5Mzh9.cLdGxvi27q17Cb1dg4oIPVTwGFHL6n3cY54rwqzIF30";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuyepeyKue2biCIsImVtYWlsIjoid2tkdG1kZ25zcW5AbmF2ZXIuY29tIiwibmlja25hbWUiOiJob29ucyIsInR5cGUiOiJ1c2VycyIsInRva2VuIjoiYWNjZXNzIiwiaWF0IjoxNjg0NTg3MzAxLCJleHAiOjE2ODQ1OTQ1MDF9.4GQGFtPqM2KYwSRknpQVjk9AGFFRPwJwGsTmyCLc44s";
 const myname = "장승훈";
 const roomId = 1;
 
@@ -21,36 +21,6 @@ const socket = io("https://dowajo.run.goorm.site", {
 
 function App() {
   const [messages, setMessages] = useState([
-    {
-      id: 0,
-      sysMsg: true,
-      type: "welcome",
-      name: "장승훈",
-    },
-    {
-      id: 1,
-      sysMsg: false,
-      name: "장승훈",
-      yourMessage: true,
-      text: "테레테테테스트",
-      time: "오후 2:00",
-    },
-    {
-      id: 2,
-      sysMsg: false,
-      yourMessage: false,
-      name: "워렌 버핏",
-      text: " ㅇㅇ ㅎㅇ ㅋ",
-      time: "오후 3:00",
-    },
-    {
-      id: 3,
-      sysMsg: false,
-      yourMessage: true,
-      name: "장승훈",
-      text: "싸가지가 없네 ^^",
-      time: "오후 4:00",
-    },
   ]);
 
   const [settings, setSettings] = useState({
@@ -65,6 +35,7 @@ function App() {
   const peerRef = useRef();
   const sender = useRef();
 
+  //세팅바 변경 이벤트
   const changeSettings = useCallback(
     (e) => {
       console.log(e);
@@ -73,6 +44,7 @@ function App() {
     [settings]
   );
 
+  //채팅 전송
   const sendMessage = useCallback((msg) => {
     if (!msg) {
       return;
@@ -80,6 +52,7 @@ function App() {
     socket.emit("new_message", msg);
   });
 
+  //새로운 채팅 수신 시
   const addMessage = useCallback(
     (user, msg) => {
       let now = new Date();
@@ -101,6 +74,7 @@ function App() {
     [messages]
   );
 
+  //새로운 이벤트 수신 시
   const addEvent = useCallback(
     (userName, event) => {
       setMessages(
@@ -156,7 +130,7 @@ function App() {
       console.error(e);
     }
   };
-
+  //webRTC 오퍼 생성
   const createOffer = async () => {
     console.log("create Offer");
     if (!(peerRef.current && socket)) {
@@ -171,7 +145,7 @@ function App() {
       console.error(e);
     }
   };
-
+  //webRTC Answer 생성
   const createAnswer = async (sdp) => {
     console.log("createAnswer");
     if (!(peerRef.current && socket)) {
@@ -206,7 +180,7 @@ function App() {
     function onBye(userName) {
       console.log("bye 이벤트");
       addEvent(userName, "bye");
-      remoteVideoRef.current.srcObject=null;
+      remoteVideoRef.current.srcObject = null;
     }
 
     function onNewMsg(user, msg) {
@@ -228,18 +202,8 @@ function App() {
     };
   }, [addEvent, addMessage]);
 
-
   //webRTC 세팅
   useEffect(() => {
-    peerRef.current = new RTCPeerConnection({
-      iceServers: [
-        {
-          urls: "stun:stun.l.google.com:19302",
-        },
-      ],
-    });
-    getMedia();
-
     function onGetOffer(sdp) {
       console.log("recieve offer");
       createAnswer(sdp);
@@ -266,8 +230,15 @@ function App() {
       console.log("새친구 접속");
       createOffer();
     }
+    peerRef.current = new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: "stun:stun.l.google.com:19302",
+        },
+      ],
+    });
 
-
+    getMedia();
     socket.on("getOffer", onGetOffer);
     socket.on("getAnswer", onGetAnswer);
     socket.on("getIce", onGetIce);
@@ -280,6 +251,7 @@ function App() {
       peerRef.current.close();
     };
   }, []);
+
   return (
     <Overlay>
       <VideoCallTemplate>
