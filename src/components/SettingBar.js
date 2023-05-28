@@ -26,8 +26,11 @@ function SettingBar({
   ableVideos,
   ableSpeakers,
   ableMikes,
+  onExit,
 }) {
   const [volume, setVolume] = useState(80);
+
+  //볼륨 설정 시 상대 비디오 볼륨 조절
   const handleVolumeChange = useCallback((e) => {
     setVolume(e.target.value);
     console.log(e.target.value);
@@ -230,7 +233,7 @@ function SettingBar({
         </div>
       </div>
 
-      <button className="exit" value="나가기">
+      <button className="exit" value="나가기" onClick={onExit}>
         나가기
       </button>
     </div>

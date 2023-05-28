@@ -102,6 +102,11 @@ function App() {
   const mikeSender = useRef();
   const initialized = useRef(false);
 
+  const onExit = useCallback(() => {
+    //마이페이지로 리디렉션 코드
+    console.log("퇴장 이벤트");
+  }, []);
+
   //처음 로드 시 사용가능한 Device들 등록
   const setDevices = useCallback(async () => {
     try {
@@ -448,6 +453,7 @@ function App() {
           ableMikes={ableMikes}
           ableSpeakers={ableSpeakers}
           getMedia={getMedia}
+          onExit={onExit}
         />
       </VideoCallTemplate>
       <ChatTemplate>
