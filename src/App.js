@@ -105,6 +105,7 @@ function App() {
   const videoSender = useRef();
   const mikeSender = useRef();
   const initialized = useRef(false);
+  const ioSocket = useRef(socket);
 
   const onExit = useCallback(() => {
     //마이페이지로 리디렉션 코드
@@ -488,7 +489,7 @@ function App() {
       </VideoCallTemplate>
       <ChatTemplate>
         <ChatLog messages={messages} />
-        <TextInput sendMessage={sendMessage} />
+        <TextInput sendMessage={sendMessage} ioSocket={ioSocket}/>
       </ChatTemplate>
     </Overlay>
   );

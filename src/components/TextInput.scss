@@ -1,7 +1,10 @@
 .TextInput {
+  position: relative;
   display: flex;
   background: #495057;
+  border-radius: 0px 0px 10px 10px;
   input {
+
     background: none;
     outline: none;
     border: none;
@@ -15,6 +18,7 @@
     flex: 1;
   }
   button {
+    border-radius: 0px 0px 10px 0px;
     background: none;
     outline: none;
     border: none;
@@ -30,5 +34,23 @@
     &:hover {
       background: #2567a8;
     }
+  }
+
+  .typing {
+    z-index: 1;
+    position: absolute;
+    background: rgba(101, 128, 100, 0.164);
+    width: 300px;
+    height: 30px;
+    left: 100px;
+    bottom: -40px;
+    border-radius: 20px;
+    border: 1px solid  rgba(58, 82, 58, 0.432);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.0rem;
+    font-weight: 500;
+    color: rgba(58, 82, 58, 0.541);
   }
 }
