@@ -1,6 +1,6 @@
 .Videos {
   height: 100%;
-  display: grid;
+  display: flex;
   grid-template-columns: 1fr 1fr;
   grid-column-gap: 20px;
   align-items: center;
@@ -9,6 +9,9 @@
   margin-right: 20px;
 
   .video {
+    flex-grow: 1;
+    width: 50%;
+    max-width: 50%;
     .info {
       color: white;
       display: flex;
@@ -40,9 +43,8 @@
   }
   video {
     border-radius: 10px;
-
-    width: 100%;
     height: 100%;
+    width: 100%;
     object-fit: fill;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     &:hover {
@@ -78,7 +80,16 @@
 
 @media (max-width: 1300px) {
   .Videos {
+    flex-direction: column;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
+
+    .video{
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+    }
   }
+
+
 }

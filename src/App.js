@@ -95,7 +95,7 @@ function App() {
   const [cameraLable, setCameraLable] = useState();
   const [mikeLable, setMikeLable] = useState();
   const [speakerLable, setSpeakerLable] = useState();
-
+  const [oppConnected, setOppConnected] = useState(false);
   const nextId = useRef(1);
   const myStream = useRef();
   const oppStream = useRef();
@@ -340,6 +340,7 @@ function App() {
     function onBye(userName) {
       console.log("bye 이벤트");
       addEvent(userName, "bye");
+      setOppConnected(false);
       if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     }
 
@@ -403,6 +404,7 @@ function App() {
     }
     function onNewClient() {
       console.log("새친구 접속");
+      setOppConnected(true);
       createOffer();
       socket.emit("changeSettings", settings);
     }
@@ -463,6 +465,7 @@ function App() {
           uname={uname} // 해당 유저이름
           myStream={myStream}
           oppStream={oppStream}
+          oppConnected={oppConnected}
         />
         <SettingBar
           settings={settings}

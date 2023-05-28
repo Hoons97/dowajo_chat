@@ -17,6 +17,7 @@ const Videos = ({
   myname,
   cname,
   uname,
+  oppConnected
 }) => {
   useEffect(() => {
     console.log("Videos 리렌더링");
@@ -28,7 +29,7 @@ const Videos = ({
   }, [settings, oppSettings]);
   return (
     <div className="Videos">
-      <div className="video">
+     { oppConnected && (<div className="video">
         <div className="pb">
         {oppSettings.videoOn ? (
             <video autoPlay ref={remoteVideoRef} />
@@ -40,12 +41,13 @@ const Videos = ({
             />
           ) : (
             <AiOutlineUser className="profile" />
-          )}        </div>
+          )}       
+           </div>
         <div className="info">
           <div className="name">{cname}</div> <div className="null" />
           {oppSettings.mikeOn ? <BsFillMicFill /> : <BsFillMicMuteFill />}
         </div>
-      </div>
+      </div>)}
       <div className="video">
         <div className="pb">
         {settings.videoOn ? (
