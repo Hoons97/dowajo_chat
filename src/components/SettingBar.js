@@ -41,11 +41,14 @@ function SettingBar({
 
   useEffect(() => {
     if (remoteVideoRef.current) remoteVideoRef.current.volume = volume / 100;
+  }, [ableSpeakers, settings, volume]);
+
+  useEffect(()=>{
     if (ableSpeakers.length !== 0) {
       console.log(ableSpeakers);
       setSpeakerLable(ableSpeakers[0].label);
     }
-  }, [ableSpeakers, settings, volume]);
+  },[ableSpeakers])
 
   async function changeCamera(e) {
     console.log(e.target.value);
@@ -59,9 +62,10 @@ function SettingBar({
     resetOption();
   }
 
-  function changeSpeaker(e) {
+  async function changeSpeaker(e) {
     console.log(e.target.value);
-    attachSinkId(remoteVideoRef.current, e.target.value, e);
+    await attachSinkId(remoteVideoRef.current, e.target.value, e);
+    resetOption();
   }
 
   //오디오 출력 device 변경
@@ -83,7 +87,7 @@ function SettingBar({
     } else {
       console.warn("Browser does not support output device selection.");
     }
-  });
+  }, [setSpeakerLable]);
 
   //설정 변경 이벤트
   const changeSettings = useCallback(
