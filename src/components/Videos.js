@@ -7,6 +7,7 @@ const Videos = ({
   myInfo,
   oppInfo,
   myStream,
+  oppStream,
   settings,
   oppSettings,
   myVideoRef,
@@ -21,21 +22,43 @@ const Videos = ({
     console.log("Videos 리렌더링");
     if (myVideoRef.current && myStream.current && !myVideoRef.current.srcObject)
       myVideoRef.current.srcObject = myStream.current;
+    
+    if(remoteVideoRef.current && oppStream.current && !remoteVideoRef.current.srcObject)
+      remoteVideoRef.current.srcObject=oppStream.current;
   }, [settings, oppSettings]);
   return (
     <div className="Videos">
       <div className="video">
         <div className="pb">
-          <video autoPlay ref={remoteVideoRef} />
-        </div>
+        {oppSettings.videoOn ? (
+            <video autoPlay ref={remoteVideoRef} />
+          ) : oppInfo.url ? (
+            <img
+              className="profile"
+              src={"http://dowajo.run.goorm.site/" + oppInfo.url}
+              alt="ㅎㅇ"
+            />
+          ) : (
+            <AiOutlineUser className="profile" />
+          )}        </div>
         <div className="info">
           <div className="name">{cname}</div> <div className="null" />
-          {oppMic ? <BsFillMicFill /> : <BsFillMicMuteFill />}
+          {oppSettings.mikeOn ? <BsFillMicFill /> : <BsFillMicMuteFill />}
         </div>
       </div>
       <div className="video">
         <div className="pb">
-          <video autoPlay ref={myVideoRef} muted/>
+        {settings.videoOn ? (
+            <video autoPlay ref={myVideoRef} muted />
+          ) : myInfo.url ? (
+            <img
+              className="profile"
+              src={"http://dowajo.run.goorm.site/" + myInfo.url}
+              alt="ㅎㅇ"
+            />
+          ) : (
+            <AiOutlineUser className="profile" />
+          )}
         </div>
         <div className="info">
           <div className="name">{myname}</div> <div className="null" />

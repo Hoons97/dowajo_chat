@@ -27,6 +27,7 @@ function SettingBar({
   ableSpeakers,
   ableMikes,
   onExit,
+  ioSocket,
 }) {
   const [volume, setVolume] = useState(80);
 
@@ -34,16 +35,17 @@ function SettingBar({
   const handleVolumeChange = useCallback((e) => {
     setVolume(e.target.value);
     console.log(e.target.value);
-    remoteVideoRef.current.volume = e.target.value / 100;
-    myVideoRef.current.volume = e.target.value / 100;
+    if (remoteVideoRef.current)
+      remoteVideoRef.current.volume = e.target.value / 100;
   });
+
   useEffect(() => {
-    remoteVideoRef.current.volume = volume / 100;
+    if (remoteVideoRef.current) remoteVideoRef.current.volume = volume / 100;
     if (ableSpeakers.length !== 0) {
       console.log(ableSpeakers);
       setSpeakerLable(ableSpeakers[0].label);
     }
-  }, [ableSpeakers]);
+  }, [ableSpeakers, settings, volume]);
 
   async function changeCamera(e) {
     console.log(e.target.value);

@@ -84,7 +84,11 @@ function App() {
     speakerOn: true,
     speakerOption: false,
   });
-  const [oppSettings, setOppSettings] = useState({});
+  const [oppSettings, setOppSettings] = useState({
+    mikeOn: true,
+    videoOn: false,
+    speakerOn: true,
+  });
   const [ableVideos, setAbleVideos] = useState([]);
   const [ableMikes, setAbleMikes] = useState([]);
   const [ableSpeakers, setAbleSpeakers] = useState([]);
@@ -188,6 +192,7 @@ function App() {
         video: cameraID ? { deviceId: cameraID } : { deviceId: exCameraID },
         audio: mikeID ? { deviceId: mikeID } : { deviceId: exMikeID },
       });
+
       if (!settings.videoOn) {
         stream
           .getVideoTracks()
@@ -212,7 +217,7 @@ function App() {
         console.log("스트림 등록");
         stream.getTracks().forEach((track) => {
           console.log(stream.getTracks());
-          if (!peerRef.current || stream.getTracks().length === 0) {
+          if (!peerRef.current) {
             return;
           }
           peerRef.current.addTrack(track, stream);
@@ -235,6 +240,7 @@ function App() {
       console.log(videoSender.current);
       console.log(mikeSender.current);
       console.log(peerRef.current);
+
       // iceCandidate 이벤트
       peerRef.current.onicecandidate = (e) => {
         if (e.candidate) {
@@ -249,7 +255,7 @@ function App() {
 
       // 구 addStream 현 track 이벤트
       peerRef.current.ontrack = (e) => {
-        console.log(e.streams);
+        console.log("ontrack 이벤트" + e.streams);
         oppStream.current = e.streams[0];
         console.log(oppStream);
         if (remoteVideoRef.current)
@@ -266,8 +272,10 @@ function App() {
         initialized.current = true;
         await getMedia();
         socket.emit("join_room", roomId);
+        socket.emit("changeSettings", settings);
       }
     } catch (e) {
+      console.log("에러 이벤트");
       console.error(e);
     }
   });
@@ -332,13 +340,21 @@ function App() {
     function onBye(userName) {
       console.log("bye 이벤트");
       addEvent(userName, "bye");
-      remoteVideoRef.current.srcObject = null;
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     }
 
     function onNewMsg(user, msg) {
       console.log("new_message 이벤트");
       addMessage(user, msg);
     }
+
+    function onChangeSetting(settings) {
+      console.log("setting 받음");
+      console.log(settings);
+      setOppSettings(settings);
+    }
+
+    socket.on("changeSettings", onChangeSetting);
     socket.on("connect", onConnect);
     socket.on("connect_error", onConnectError);
     socket.on("welcome", onWelcome);
@@ -346,6 +362,7 @@ function App() {
     socket.on("new_message", onNewMsg);
 
     return () => {
+      socket.off("changeSettings", onChangeSetting);
       socket.off("connect", onConnect);
       socket.off("connect_error", onConnectError);
       socket.off("welcome", onWelcome);
@@ -387,6 +404,7 @@ function App() {
     function onNewClient() {
       console.log("새친구 접속");
       createOffer();
+      socket.emit("changeSettings", settings);
     }
     peerRef.current = new RTCPeerConnection({
       iceServers: [
@@ -423,6 +441,11 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    console.log("setting보내기");
+    socket.emit("changeSettings", settings);
+  }, [settings]);
+
   return (
     <Overlay>
       <VideoCallTemplate>
@@ -430,6 +453,7 @@ function App() {
           myVideoRef={myVideoRef}
           remoteVideoRef={remoteVideoRef}
           settings={settings}
+          oppSettings={oppSettings}
           myInfo={myInfo}
           oppInfo={oppInfo}
           myMic={settings.mikeOn}
@@ -438,6 +462,7 @@ function App() {
           cname={cname}
           uname={uname} // 해당 유저이름
           myStream={myStream}
+          oppStream={oppStream}
         />
         <SettingBar
           settings={settings}
