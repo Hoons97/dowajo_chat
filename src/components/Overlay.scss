@@ -1,14 +1,36 @@
+html, body {
+    height: 100%;
+}
 
+#root{
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
+}
 .Overlay {
     display: grid;
     grid-template-columns: 1fr 500px;
     grid-template-rows: 100%;
     grid-column-gap: 20px;
+    width: 95%;
     min-width: 1200px;
-    height: 100%;
+    max-width: 2650px;
+    height: 80%;
     min-height: 800px;
-    margin-top: 100px;
+    max-height: 1600px;
+
     margin-left: 50px;
     margin-right: 50px;
 }
+
+@media (max-width: 1300px) {
+    .Videos {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+    .Overlay{
+        height: 95%;
+    }
+  }
+  

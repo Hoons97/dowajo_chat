@@ -7,43 +7,122 @@ import Overlay from "./components/Overlay";
 import VideoCallTemplate from "./components/VideoCallTemplate";
 import SettingBar from "./components/SettingBar";
 import Videos from "./components/Videos";
+import { AiOutlineUser } from "react-icons/ai";
 
+/*
+import { useParams } from "react-router-dom";
+const searchParams = new URLSearchParams(window.location.search);
+const list = searchParams.get("list");
+const name = searchParams.get("name");
+const id = searchParams.get("id");
+const cname = searchParams.get("counselorId");
+const uname = searchParams.get("UserId");
+console.log(cname);
+console.log(uname);
+//const token = searchParams.get("token");
+console.log('videoroom.js 로드');
+
+const token = localStorage.getItem("token");
+const accessToken1 = { token };
+const accessToken = accessToken1.token;
+const myname1 = { name };
+const myname = myname1;
+const roomId1 = { id };
+const roomId = JSON.stringify(roomId1);
+console.log(typeof accessToken);
+console.log(typeof myname);
+console.log(typeof roomId);
+console.log(accessToken);
+*/
+
+//테스트용 constant 값들
 const accessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuyepeyKue2biCIsImVtYWlsIjoid2tkdG1kZ25zcW5AbmF2ZXIuY29tIiwibmlja25hbWUiOiJob29ucyIsInR5cGUiOiJ1c2VycyIsInRva2VuIjoiYWNjZXNzIiwiaWF0IjoxNjg0NjY0NjU4LCJleHAiOjE2ODcyNTY2NTh9.D6LbSlRmOPis8Y93aoqx2Z3mTY775GC_3ysV7JgT7WU"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuyepeyKue2biCIsImVtYWlsIjoid2tkdG1kZ25zcW5AbmF2ZXIuY29tIiwibmlja25hbWUiOiJob29ucyIsInR5cGUiOiJ1c2VycyIsInRva2VuIjoiYWNjZXNzIiwiaWF0IjoxNjg0NjY0NjU4LCJleHAiOjE2ODcyNTY2NTh9.D6LbSlRmOPis8Y93aoqx2Z3mTY775GC_3ysV7JgT7WU";
+const myInfo = {
+  id: 1,
+  name: "장승훈",
+  email: "wkdtmdgnsqn@naver.com",
+  nickname: "hoons",
+  type: "users",
+  token: "access",
+  iat: 1685096202,
+  exp: 1685103402,
+};
+
+const oppInfo = {
+  id: 25,
+  name: "강성태",
+  email: "kst@naver.com",
+  nickname: "성태",
+  type: "counselors",
+  token: "access",
+  url: "/img/ê°ì±í1683382745672.jpg",
+  iat: 1685097035,
+  exp: 1685104235,
+};
 const myname = "장승훈";
 const roomId = 1;
+const cname = "강성태";
+const uname = myname;
+//합칠때 지워주세요
 
 const socket = io("https://dowajo.run.goorm.site", {
   auth: {
     Authorization: accessToken,
   },
+  autoConnect: false,
 });
 
 function App() {
-  const [messages, setMessages] = useState([
-  ]);
+  const [messages, setMessages] = useState([]);
 
   const [settings, setSettings] = useState({
     mikeOn: true,
+    mikeOption: false,
     videoOn: true,
+    videoOption: false,
     speakerOn: true,
+    speakerOption: false,
   });
+  const [oppSettings, setOppSettings] = useState({});
+  const [ableVideos, setAbleVideos] = useState([]);
+  const [ableMikes, setAbleMikes] = useState([]);
+  const [ableSpeakers, setAbleSpeakers] = useState([]);
+  const [cameraLable, setCameraLable] = useState();
+  const [mikeLable, setMikeLable] = useState();
+  const [speakerLable, setSpeakerLable] = useState();
 
-  const nextId = useRef(4);
+  const nextId = useRef(1);
+  const myStream = useRef();
+  const oppStream = useRef();
   const myVideoRef = useRef();
   const remoteVideoRef = useRef();
   const peerRef = useRef();
-  const sender = useRef();
-  const sentJoin = useRef(false);
+  const videoSender = useRef();
+  const mikeSender = useRef();
+  const initialized = useRef(false);
 
-  //세팅바 변경 이벤트
-  const changeSettings = useCallback(
-    (e) => {
+  //처음 로드 시 사용가능한 Device들 등록
+  const setDevices = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      console.log(devices);
+      let ableVideoDevices = devices.filter(
+        (device) => device.kind === "videoinput"
+      );
+      setAbleVideos(ableVideoDevices);
+      let ableMikeDevices = devices.filter(
+        (device) => device.kind === "audioinput"
+      );
+      setAbleMikes(ableMikeDevices);
+      let ableSpeakerDevices = devices.filter(
+        (device) => device.kind === "audiooutput"
+      );
+      setAbleSpeakers(ableSpeakerDevices);
+    } catch (e) {
       console.log(e);
-      setSettings({ ...settings, [e]: !settings[e] });
-    },
-    [settings]
-  );
+    }
+  }, []);
 
   //채팅 전송
   const sendMessage = useCallback((msg) => {
@@ -66,8 +145,9 @@ function App() {
           text: msg,
           yourMessage: user.name === myname ? true : false,
           url: user.url,
-          time: `${ampm} ${now.getHours() % 12}:${now.getMinutes() < 10 ? "0" + now.getMinutes() : now.getMinutes()
-            }`,
+          time: `${ampm} ${now.getHours() % 12}:${
+            now.getMinutes() < 10 ? "0" + now.getMinutes() : now.getMinutes()
+          }`,
         })
       );
     },
@@ -89,27 +169,67 @@ function App() {
     [messages]
   );
 
-  const getMedia = async () => {
+  const getMedia = useCallback(async (cameraID, mikeID) => {
     try {
+      console.log(ableVideos.filter((video) => video.label === cameraLable));
+      const exCameraID = ableVideos.filter(
+        (video) => video.label === cameraLable
+      )[0]?.deviceId;
+      const exMikeID = ableMikes.filter((mike) => mike.label === mikeLable)[0]
+        ?.deviceId;
+      console.log(cameraID || true);
       // 자신이 원하는 자신의 스트림정보
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
+        video: cameraID ? { deviceId: cameraID } : { deviceId: exCameraID },
+        audio: mikeID ? { deviceId: mikeID } : { deviceId: exMikeID },
       });
-
+      if (!settings.videoOn) {
+        stream
+          .getVideoTracks()
+          .forEach((track) => (track.enabled = !track.enabled));
+      }
+      if (!settings.mikeOn) {
+        stream
+          .getAudioTracks()
+          .forEach((track) => (track.enabled = !track.enabled));
+      }
+      myStream.current = stream;
+      console.log(stream.getVideoTracks()[0]);
+      setCameraLable(stream.getVideoTracks()[0].label);
+      setMikeLable(stream.getAudioTracks()[0].label);
       if (myVideoRef.current) {
         myVideoRef.current.srcObject = stream;
       }
 
       // 스트림을 peerConnection에 등록
-      console.log(peerRef.current.addTrack);
-      stream.getTracks().forEach((track) => {
-        if (!peerRef.current) {
-          return;
-        }
-        sender.current = peerRef.current.addTrack(track, stream);
-      });
+      console.log(peerRef.current.getSenders());
+      if (peerRef.current.getSenders().length === 0) {
+        console.log("스트림 등록");
+        stream.getTracks().forEach((track) => {
+          console.log(stream.getTracks());
+          if (!peerRef.current || stream.getTracks().length === 0) {
+            return;
+          }
+          peerRef.current.addTrack(track, stream);
+        });
 
+        videoSender.current = peerRef.current
+          .getSenders()
+          .find((sender) => sender.track.kind === "video");
+        mikeSender.current = peerRef.current
+          .getSenders()
+          .find((sender) => sender.track.kind === "audio");
+      }
+      console.log(peerRef.current.getSenders());
+      if (videoSender.current) {
+        videoSender.current.replaceTrack(stream.getVideoTracks()[0]);
+        console.log(stream.getAudioTracks()[0]);
+        mikeSender.current.replaceTrack(stream.getAudioTracks()[0]);
+      }
+
+      console.log(videoSender.current);
+      console.log(mikeSender.current);
+      console.log(peerRef.current);
       // iceCandidate 이벤트
       peerRef.current.onicecandidate = (e) => {
         if (e.candidate) {
@@ -125,19 +245,27 @@ function App() {
       // 구 addStream 현 track 이벤트
       peerRef.current.ontrack = (e) => {
         console.log(e.streams);
-        if (remoteVideoRef.current) {
+        oppStream.current = e.streams[0];
+        console.log(oppStream);
+        if (remoteVideoRef.current)
           remoteVideoRef.current.srcObject = e.streams[0];
-        }
       };
     } catch (e) {
       console.error(e);
     }
-    if (!sentJoin.current) {
-      socket.emit("join_room", roomId);
-      sentJoin.current = true;
-    }
-  };
+  });
 
+  const initialize = useCallback(async () => {
+    try {
+      if (!initialized.current) {
+        initialized.current = true;
+        await getMedia();
+        socket.emit("join_room", roomId);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  });
   //webRTC 오퍼 생성
   const createOffer = async () => {
     console.log("create Offer");
@@ -177,8 +305,20 @@ function App() {
       console.log("소켓 연결 성공");
     }
     function onConnectError(err) {
+      if (err.message === "auth 프로퍼티에 Authorization 토큰이 없습니다.") {
+        console.log("토큰 업데이트 로직");
+        let updatedToken =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuyepeyKue2biCIsImVtYWlsIjoid2tkdG1kZ25zcW5AbmF2ZXIuY29tIiwibmlja25hbWUiOiJob29ucyIsInR5cGUiOiJ1c2VycyIsInRva2VuIjoiYWNjZXNzIiwiaWF0IjoxNjg0NjY0NjU4LCJleHAiOjE2ODcyNTY2NTh9.D6LbSlRmOPis8Y93aoqx2Z3mTY775GC_3ysV7JgT7WU";
+        /*
+        updatedToken에 토큰값 불러오는 로직
+        */
+        socket.auth.Authorization = updatedToken;
+        socket.connect();
+        return;
+      }
       console.log(err);
       alert("연결 오류. 로그인 페이지로 돌아갑니다.");
+      //로그인페이지 / 메인페이지로 라우팅
     }
     function onWelcome(userName) {
       console.log("welcome 이벤트");
@@ -211,6 +351,8 @@ function App() {
 
   //webRTC 세팅
   useEffect(() => {
+    socket.connect();
+    setDevices();
     function onGetOffer(sdp) {
       console.log("recieve offer");
       createAnswer(sdp);
@@ -249,28 +391,30 @@ function App() {
             "stun:stun1.l.google.com:19302",
             "stun:stun2.l.google.com:19302",
             "stun:stun3.l.google.com:19302",
-            "stun:stun4.l.google.com:19302",]
+            "stun:stun4.l.google.com:19302",
+          ],
         },
       ],
-
     });
     function onClose() {
+      socket.disconnect();
       peerRef.current.close();
     }
     socket.on("getOffer", onGetOffer);
     socket.on("getAnswer", onGetAnswer);
     socket.on("getIce", onGetIce);
     socket.on("newClient", onNewClient);
-    window.addEventListener('beforeunload', onClose);
-    getMedia();
+    window.addEventListener("beforeunload", onClose);
+    initialize();
 
     return () => {
+      socket.disconnect();
       socket.off("getOffer", onGetOffer);
       socket.off("getAnswer", onGetAnswer);
       socket.off("getIce", onGetIce);
       socket.off("newClient", onNewClient);
       peerRef.current.close();
-      window.removeEventListener('beforeunload', onClose);
+      window.removeEventListener("beforeunload", onClose);
     };
   }, []);
 
@@ -280,10 +424,31 @@ function App() {
         <Videos
           myVideoRef={myVideoRef}
           remoteVideoRef={remoteVideoRef}
+          settings={settings}
+          myInfo={myInfo}
+          oppInfo={oppInfo}
           myMic={settings.mikeOn}
           oppMic={true}
+          myname={myname}
+          cname={cname}
+          uname={uname} // 해당 유저이름
+          myStream={myStream}
         />
-        <SettingBar settings={settings} changeSettings={changeSettings} />
+        <SettingBar
+          settings={settings}
+          setSettings={setSettings}
+          cameraLable={cameraLable}
+          mikeLable={mikeLable}
+          speakerLable={speakerLable}
+          setSpeakerLable={setSpeakerLable}
+          myVideoRef={myVideoRef}
+          remoteVideoRef={remoteVideoRef}
+          myStream={myStream}
+          ableVideos={ableVideos}
+          ableMikes={ableMikes}
+          ableSpeakers={ableSpeakers}
+          getMedia={getMedia}
+        />
       </VideoCallTemplate>
       <ChatTemplate>
         <ChatLog messages={messages} />

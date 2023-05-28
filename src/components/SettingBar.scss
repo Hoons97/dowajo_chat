@@ -7,10 +7,30 @@
   align-items: center;
   border-top: 2px solid rgb(131, 131, 131);
 
-  .icons{
+  .Devices{
+    width: 30px;
+  }
+  .icons, .volume{
     display: flex;
     align-items: center;
     justify-content: center;
+    .iconContainer {
+      position: relative;
+      display: flex;
+      margin-right: 10px;
+      margin-left: 10px;
+      border-radius: 10px;
+      transition: 0.1s background ease-in;
+      &:hover {
+        background: #41688f;
+      }
+    };
+  }
+
+  .volume{
+    margin-left: 20px;
+    margin-right: 10px;
+    width: 250px;
   }
   button {
     display: flex;
@@ -22,8 +42,7 @@
     height: 60px;
     width: 80px;
     width: height;
-    margin-right: 10px;
-    margin-left: 10px;
+
     outline: none;
     border: none;
     background: none;
