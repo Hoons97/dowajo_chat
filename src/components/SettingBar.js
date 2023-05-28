@@ -66,7 +66,7 @@ function SettingBar({
 
   //오디오 출력 device 변경
   const attachSinkId = useCallback((element, sinkId, e) => {
-    if (typeof element.sinkId !== "undefined") {
+    if (typeof element.sinkId !== "undefined" && element) {
       element
         .setSinkId(sinkId)
         .then(() => {

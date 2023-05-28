@@ -272,7 +272,7 @@ function App() {
         initialized.current = true;
         await getMedia();
         socket.emit("join_room", roomId);
-        socket.emit("changeSettings", settings);
+
       }
     } catch (e) {
       console.log("에러 이벤트");
@@ -378,7 +378,9 @@ function App() {
     setDevices();
     function onGetOffer(sdp) {
       console.log("recieve offer");
+      socket.emit("changeSettings", settings);
       createAnswer(sdp);
+      setOppConnected(true);
     }
 
     function onGetAnswer(sdp) {
