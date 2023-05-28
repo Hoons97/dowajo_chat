@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import "./TextInput.scss";
 import { BsFillSendFill } from "react-icons/bs";
 
-const TextInput = ({ sendMessage, ioSocket }) => {
+const TextInput = ({ sendMessage, ioSocket, oppConnected }) => {
   const [value, setValue] = useState("");
   const [oppTyping, setOppTyping] = useState(false);
 
@@ -35,7 +35,9 @@ const TextInput = ({ sendMessage, ioSocket }) => {
       ioSocket.current.emit('doneTyping');
       typingStatus.current=false;
     }
+    if(!oppConnected) setOppTyping(false);
   })
+
   const onChange = useCallback((e) => {
     setValue(e.target.value);
   }, []);

@@ -489,7 +489,7 @@ function App() {
       </VideoCallTemplate>
       <ChatTemplate>
         <ChatLog messages={messages} />
-        <TextInput sendMessage={sendMessage} ioSocket={ioSocket}/>
+        <TextInput sendMessage={sendMessage} ioSocket={ioSocket} oppConnected={oppConnected}/>
       </ChatTemplate>
     </Overlay>
   );
